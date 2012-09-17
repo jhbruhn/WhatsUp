@@ -26,7 +26,7 @@ public class BinTreeNodeWriter {
 		this.writeAttributes(attributes);
 		String ret = this.output;
 		this.output = "";
-		
+
 		return ret;
 
 	}
@@ -41,7 +41,7 @@ public class BinTreeNodeWriter {
 
 	protected void writeInternal(ProtocolNode node) {
 		int len = 1;
-		if (node.attributeHash != null)
+		if (node.attributeHash.size() > 0)
 			len += node.attributeHash.size() * 2;
 		if (node.children != null && node.children.size() > 0)
 			len += 1;
@@ -52,7 +52,7 @@ public class BinTreeNodeWriter {
 		this.writeAttributes(node.attributeHash);
 		if (node.data.length() > 0)
 			this.writeBytes(node.data);
-		if (node.children != null) {
+		if (node.children != null && node.children.size() > 0) {
 			this.writeListStart(node.children.size());
 			for (ProtocolNode node1 : node.children) {
 				this.writeInternal(node1);
@@ -129,7 +129,7 @@ public class BinTreeNodeWriter {
 	}
 
 	protected void writeAttributes(Map<String, String> attributes) {
-		if (attributes != null) {
+		if (attributes.size() > 0) {
 			for (Map.Entry<String, String> entry : attributes.entrySet()) {
 				this.writeString(entry.getKey());
 				this.writeString(entry.getValue());

@@ -100,7 +100,6 @@ public class WhatsAPI {
 		byte[] digest = m.digest();
 		BigInteger bigInt = new BigInteger(1, digest);
 		String hashtext = bigInt.toString(16);
-		// Now we need to zero pad it if you actually want the full 32 chars.
 		while (hashtext.length() < 32) {
 			hashtext = "0" + hashtext;
 		}
@@ -149,8 +148,6 @@ public class WhatsAPI {
 	}
 
 	protected ProtocolNode addAuthResponse() {
-		System.out.println("adding Auth Response");
-		System.out.println(this.challenge.size());
 		String nonce = this.challenge.get("nonce");
 		String resp = this.authenticate(nonce);
 		Map<String, String> map = new HashMap<String, String>();
@@ -183,11 +180,9 @@ public class WhatsAPI {
 		ByteBuffer buffer = ByteBuffer.allocate(1024);
 		String s = "";
 
-		s += incompleteMessage;
-		this.incompleteMessage = "";
-//		if (!incompleteMessage.isEmpty())
-//			System.out.println(incompleteMessage);
-
+		
+		// if (!incompleteMessage.isEmpty())
+		// System.out.println(incompleteMessage);
 		try {
 			while (socket.read(buffer) > 0) {
 				buffer.flip();
@@ -195,7 +190,7 @@ public class WhatsAPI {
 				s += new String(buffer.array());
 				buffer.clear();
 			}
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			exit();
@@ -217,7 +212,6 @@ public class WhatsAPI {
 	protected void processChallenge(ProtocolNode node) {
 		String challenge = Base64.decode(node.data);
 		String[] strs = challenge.split(",");
-		System.out.println("AUTH CHALLENGE");
 		for (String s : strs) {
 			String[] k = s.split("=");
 			this.challenge.put(k[0], k[1].replace("\"", ""));
@@ -272,10 +266,11 @@ public class WhatsAPI {
 						&& node.children.get(0).tag.equals("ping"))
 					this.pong(node.attributeHash.get("id"));
 
-				node = this.reader.nextTree(null);
+				node = this.reader.nextTree();
 			}
 		} catch (IncompleteMessageException e) {
 			this.incompleteMessage = e.getData();
+			e.printStackTrace();
 		} catch (InvalidTokenException e) {
 			e.printStackTrace();
 		}
@@ -311,7 +306,6 @@ public class WhatsAPI {
 			this.processInboundData(this.readData());
 		} while ((i++ < 100)
 				&& this.loginStatus.equals(this.disconnectedStatus));
-		System.out.println(this.loginStatus);
 	}
 
 	public void pollMessages() {

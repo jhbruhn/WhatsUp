@@ -1,5 +1,6 @@
 package org.alternadev.whatsup;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,11 +14,17 @@ public class BinTreeNodeReader {
 		this.dic = dic;
 	}
 
+	public ProtocolNode nextTree() throws InvalidTokenException,
+			IncompleteMessageException {
+		return nextTree(null);
+	}
+
 	public ProtocolNode nextTree(String input) throws InvalidTokenException,
 			IncompleteMessageException {
 		if (input != null)
 			this.input = input;
 		int stanzaSize = this.peekInt16();
+		// System.out.println(stanzaSize);
 		if (stanzaSize > this.input.length())
 			throw new IncompleteMessageException(
 					"Die Message war mal so mäßig incomplete et ita.",
@@ -25,21 +32,19 @@ public class BinTreeNodeReader {
 		this.readInt16();
 		if (stanzaSize > 0)
 			return this.nextTreeInternal();
-		
 		return null;
 	}
 
-	protected String getToken(int token) throws IllegalArgumentException {
+	protected String getToken(int token) throws InvalidTokenException {
 		if (token >= 0 && token < dic.length)
 			return dic[token];
-		throw new IllegalArgumentException("INVAILD TOKEN.");
+		throw new InvalidTokenException(token);
 	}
 
-	protected String readString(int token) throws IllegalArgumentException {
+	protected String readString(int token) throws InvalidTokenException {
 		String ret = "";
 		if (token == -1)
-			throw new IllegalArgumentException(
-					"Der Token, er war so mäßig ungültig.");
+			throw new InvalidTokenException(token);
 
 		if (token > 4 && token < 0xf5)
 			ret = this.getToken(token);
@@ -66,7 +71,7 @@ public class BinTreeNodeReader {
 	}
 
 	protected Map<String, String> readAttributes(int size)
-			throws IllegalArgumentException {
+			throws InvalidTokenException {
 		Map<String, String> map = new HashMap<String, String>();
 		int attribCount = (size - 2 + size % 2) / 2;
 		for (int i = 0; i < attribCount; i++) {
@@ -80,6 +85,7 @@ public class BinTreeNodeReader {
 	protected ProtocolNode nextTreeInternal() throws InvalidTokenException {
 		int token = this.readInt8();
 		int size = this.readListSize(token);
+
 		token = this.readInt8();
 		if (token == 1) {
 			return new ProtocolNode("start", this.readAttributes(size), null,
@@ -126,15 +132,18 @@ public class BinTreeNodeReader {
 	protected int readInt24() {
 		int ret = 0;
 		if (this.input.length() >= 3) {
-			 ret = (int)(this.input.substring(0, 3).charAt(0)) << 16;
-			 ret |= (int)(this.input.substring(1, 2).charAt(0)) << 8;
-			 ret |= (int)(this.input.substring(2, 3).charAt(0)) << 0;
-//			String a = this.input.substring(0, 3);
-//			String s = "";
-//			s += (int) a.charAt(0);
-//			s += (int) a.charAt(1);
-//			s += (int) a.charAt(2);
-//			ret = Integer.valueOf(s);
+			try {
+				ret = Character.getNumericValue(this.input.substring(0, 3)
+						.getBytes("ASCII")[0]) << 16;
+				ret |= Character.getNumericValue(this.input.substring(1, 2)
+						.getBytes("ASCII")[0]) << 8;
+				ret |= Character.getNumericValue(this.input.substring(2, 3)
+						.getBytes("ASCII")[0]) << 0;
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 			this.input = this.input.substring(3);
 		}
 		return ret;
@@ -142,14 +151,17 @@ public class BinTreeNodeReader {
 
 	protected int peekInt16() {
 		int ret = 0;
-		if (this.input.length() >= 2) {
-			 ret = (int)(this.input.substring(0, 1).charAt(0)) << 8;
-			 ret |= (int)(this.input.substring(1, 2).charAt(0)) << 0;
-//			String a = this.input.substring(0, 2);
-//			String s = "";
-//			s += (int) a.charAt(0);
-//			s += (int) a.charAt(1);
-//			ret = Integer.valueOf(s);
+		try {
+			if (this.input.length() >= 2) {
+
+				ret = this.input.substring(0, 1).getBytes("ASCII")[0] << 8;
+
+				ret |= (this.input.substring(1, 2).getBytes("ASCII")[0]) << 0;
+
+			}
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return ret;
 	}
@@ -165,9 +177,16 @@ public class BinTreeNodeReader {
 	protected int readInt8() {
 		int ret = 0;
 		if (this.input.length() >= 1) {
-			ret = (int) this.input.substring(0, 1).charAt(0);
+
+			try {
+				ret = (this.input.substring(0, 1).getBytes("ASCII")[0]);
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			// JOptionPane.showMessageDialog(null, "WIssenheit");
 			input = this.input.substring(1);
+
 		}
 
 		return ret;
