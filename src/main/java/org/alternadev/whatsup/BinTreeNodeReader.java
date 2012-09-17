@@ -24,7 +24,6 @@ public class BinTreeNodeReader {
 		if (input != null)
 			this.input = input;
 		int stanzaSize = this.peekInt16();
-		// System.out.println(stanzaSize);
 		if (stanzaSize > this.input.length())
 			throw new IncompleteMessageException(
 					"Die Message war mal so mäßig incomplete et ita.",
@@ -132,17 +131,9 @@ public class BinTreeNodeReader {
 	protected int readInt24() {
 		int ret = 0;
 		if (this.input.length() >= 3) {
-			try {
-				ret = Character.getNumericValue(this.input.substring(0, 3)
-						.getBytes("ASCII")[0]) << 16;
-				ret |= Character.getNumericValue(this.input.substring(1, 2)
-						.getBytes("ASCII")[0]) << 8;
-				ret |= Character.getNumericValue(this.input.substring(2, 3)
-						.getBytes("ASCII")[0]) << 0;
-			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			ret = input.charAt(0) << 16;
+			ret |= input.charAt(1) << 8;
+			ret |= input.charAt(2) << 0;
 
 			this.input = this.input.substring(3);
 		}
@@ -151,18 +142,11 @@ public class BinTreeNodeReader {
 
 	protected int peekInt16() {
 		int ret = 0;
-		try {
-			if (this.input.length() >= 2) {
-
-				ret = this.input.substring(0, 1).getBytes("ASCII")[0] << 8;
-
-				ret |= (this.input.substring(1, 2).getBytes("ASCII")[0]) << 0;
-
-			}
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (this.input.length() >= 2) {
+			ret = input.charAt(0) << 8;
+			ret |= input.charAt(1) << 0;
 		}
+
 		return ret;
 	}
 
@@ -177,16 +161,8 @@ public class BinTreeNodeReader {
 	protected int readInt8() {
 		int ret = 0;
 		if (this.input.length() >= 1) {
-
-			try {
-				ret = (this.input.substring(0, 1).getBytes("ASCII")[0]);
-			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			// JOptionPane.showMessageDialog(null, "WIssenheit");
+			ret = input.charAt(0);
 			input = this.input.substring(1);
-
 		}
 
 		return ret;
