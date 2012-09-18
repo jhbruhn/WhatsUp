@@ -9,5 +9,5 @@ The mobilephone-number has to be in the format "ccxxxxx...", so for example: "49
 So, actually right now this is a port of https://github.com/venomous0x/WhatsAPI.
 
 People who helped me:
-Oliver Scheuch
-@sgade
+* Oliver Scheuch
+* @sgade
