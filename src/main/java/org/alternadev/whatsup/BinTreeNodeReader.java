@@ -1,6 +1,5 @@
 package org.alternadev.whatsup;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,7 +7,7 @@ import java.util.Map;
 
 public class BinTreeNodeReader {
 	private String[] dic;
-	private String input;
+	private int[] input;
 
 	public BinTreeNodeReader(String[] dic) {
 		this.dic = dic;
@@ -19,14 +18,15 @@ public class BinTreeNodeReader {
 		return nextTree(null);
 	}
 
-	public ProtocolNode nextTree(String input) throws InvalidTokenException,
+	public ProtocolNode nextTree(int[] input) throws InvalidTokenException,
 			IncompleteMessageException {
 		if (input != null)
 			this.input = input;
 		int stanzaSize = this.peekInt16();
-		if (stanzaSize > this.input.length())
+		if (stanzaSize > this.input.length)
 			throw new IncompleteMessageException(
-					"Die Message war mal so mäßig incomplete et ita.",
+					("Die Message war mal so mäßig incomplete et ita. ("
+							+ stanzaSize + ", " + this.input.length + ")"),
 					this.input);
 		this.readInt16();
 		if (stanzaSize > 0)
@@ -36,7 +36,7 @@ public class BinTreeNodeReader {
 
 	protected String getToken(int token) throws InvalidTokenException {
 		if (token >= 0 && token < dic.length)
-			return dic[token];
+			return dic[token - 1];
 		throw new InvalidTokenException(token);
 	}
 
@@ -74,8 +74,8 @@ public class BinTreeNodeReader {
 		Map<String, String> map = new HashMap<String, String>();
 		int attribCount = (size - 2 + size % 2) / 2;
 		for (int i = 0; i < attribCount; i++) {
-			String key = this.readString(this.readInt8());
-			String value = this.readString(this.readInt8());
+			String key = this.readString(this.readInt8() + 1);
+			String value = this.readString(this.readInt8() + 1);
 			map.put(key, value);
 		}
 		return map;
@@ -130,21 +130,28 @@ public class BinTreeNodeReader {
 
 	protected int readInt24() {
 		int ret = 0;
-		if (this.input.length() >= 3) {
-			ret = input.charAt(0) << 16;
-			ret |= input.charAt(1) << 8;
-			ret |= input.charAt(2) << 0;
+		if (this.input.length >= 3) {
+			ret = input[0] << 16;
+			ret += input[1] << 8;
+			ret += input[2] << 0;
 
-			this.input = this.input.substring(3);
+			removeFromInput(3);
 		}
 		return ret;
 	}
 
+	private void removeFromInput(int num) {
+		int[] karl = new int[input.length - num];
+		for (int i = num; i < input.length; i++)
+			karl[i - num] = input[i];
+		input = karl;
+	}
+
 	protected int peekInt16() {
 		int ret = 0;
-		if (this.input.length() >= 2) {
-			ret = input.charAt(0) << 8;
-			ret |= input.charAt(1) << 0;
+		if (this.input.length >= 2) {
+			ret = input[0] << 8;
+			ret += input[1] << 0;
 		}
 
 		return ret;
@@ -153,16 +160,16 @@ public class BinTreeNodeReader {
 	protected int readInt16() {
 		int ret = peekInt16();
 		if (ret > 0) {
-			this.input = this.input.substring(2);
+			removeFromInput(2);
 		}
 		return ret;
 	}
 
 	protected int readInt8() {
 		int ret = 0;
-		if (this.input.length() >= 1) {
-			ret = input.charAt(0);
-			input = this.input.substring(1);
+		if (this.input.length >= 1) {
+			ret = input[0];
+			removeFromInput(1);
 		}
 
 		return ret;
@@ -170,10 +177,17 @@ public class BinTreeNodeReader {
 
 	protected String fillArray(int len) {
 		String ret = "";
-		if (this.input.length() >= len) {
-			ret = this.input.substring(0, len);
-			this.input = this.input.substring(len);
+		if (this.input.length >= len) {
+			ret = new String(intToCharArray(input)).substring(0, len);
+			removeFromInput(len);
 		}
 		return ret;
+	}
+	
+	private char[] intToCharArray(int[] in) {
+		char[] peda = new char[in.length];
+		for(int i = 0; i < in.length; i++)
+			peda[i] = (char) (((char) in[i]));
+		return peda;
 	}
 }

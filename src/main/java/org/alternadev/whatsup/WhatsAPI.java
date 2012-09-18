@@ -1,11 +1,12 @@
 package org.alternadev.whatsup;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
-import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -13,8 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import javax.swing.JOptionPane;
 
 public class WhatsAPI {
 	private String phoneNumber;
@@ -26,11 +25,11 @@ public class WhatsAPI {
 	private String whatsAppRealm = "s.whatsapp.net";
 	private String whatsAppDigest = "xmpp/s.whatsapp.net";
 	private String device = "iPhone";
-	private String whatsAppVer = "2.8.4";
+	private String whatsAppVer = "2.8.2";
 	private int port = 5222;
-	private int timeoutSec = 2;
-	private int timeoutUsec = 0;
-	private String incompleteMessage = "";
+	// private int timeoutSec = 2;
+	// private int timeoutUsec = 0;
+	private int[] incompleteMessage;
 
 	private String disconnectedStatus = "disconnected";
 	private String connectedStatus = "connected";
@@ -41,7 +40,7 @@ public class WhatsAPI {
 
 	private Map<String, String> challenge;
 
-	private SocketChannel socket;
+	private Socket socket;
 	private BinTreeNodeReader reader;
 	private BinTreeNodeWriter writer;
 
@@ -158,17 +157,15 @@ public class WhatsAPI {
 	}
 
 	protected void sendData(String in) {
-		ByteBuffer data = ByteBuffer.wrap(in.getBytes());
-		data.clear();
-		data.put(in.getBytes());
-		data.flip();
-		while (data.hasRemaining())
-			try {
-				socket.write(data);
-			} catch (IOException e) {
-				e.printStackTrace();
-				exit();
-			}
+		try {
+			BufferedOutputStream out = new BufferedOutputStream(
+					this.socket.getOutputStream());
+			out.write(in.getBytes());
+			out.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	protected void sendNode(ProtocolNode node) {
@@ -176,37 +173,28 @@ public class WhatsAPI {
 		sendData(this.writer.write(node));
 	}
 
-	protected String readData() {
-		ByteBuffer buffer = ByteBuffer.allocate(1024);
-		String s = "";
-
-		
-		// if (!incompleteMessage.isEmpty())
-		// System.out.println(incompleteMessage);
+	protected int[] readData() {
 		try {
-			while (socket.read(buffer) > 0) {
-				buffer.flip();
-				socket.read(buffer);
-				s += new String(buffer.array());
-				buffer.clear();
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-			exit();
-		}
-		return s.trim();
-	}
-
-	private void exit() {
-		try {
-			socket.close();
+			// BufferedReader in = new BufferedReader(new InputStreamReader(
+			// socket.getInputStream()));
+			byte[] input = new byte[1024];
+			socket.getInputStream().read(input);
+			int[] ret = new int[input.length];
+			for (int i = 0; i < input.length; i++)
+				ret[i] = unsignedToBytes(input[i]);
+			return ret;
+			// ret += new String(input);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.exit(1);
 
+		return null;
+	}
+
+	public static int unsignedToBytes(byte a) {
+		int b = ((a & 0xFF));
+		return ((b));
 	}
 
 	protected void processChallenge(ProtocolNode node) {
@@ -240,7 +228,7 @@ public class WhatsAPI {
 		}
 	}
 
-	protected void processInboundData(String data) {
+	protected void processInboundData(int[] data) {
 		try {
 			ProtocolNode node = reader.nextTree(data);
 			// if(node != null) System.out.println(node != null);
@@ -282,10 +270,7 @@ public class WhatsAPI {
 	}
 
 	public void connect() throws UnknownHostException, IOException {
-		socket = SocketChannel.open(new InetSocketAddress(this.whatsAppHost,
-				this.port));
-		socket.socket().setSoTimeout(this.timeoutSec);
-
+		socket = new Socket(this.whatsAppHost, this.port);
 	}
 
 	public void login() {
@@ -296,7 +281,7 @@ public class WhatsAPI {
 		this.sendData(data);
 		this.sendNode(feat);
 		this.sendNode(auth);
-		String s = this.readData();
+		int[] s = this.readData();
 
 		this.processInboundData(s);
 		ProtocolNode data2 = this.addAuthResponse();

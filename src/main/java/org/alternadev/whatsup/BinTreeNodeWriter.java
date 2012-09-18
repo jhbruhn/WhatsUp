@@ -25,7 +25,7 @@ public class BinTreeNodeWriter {
 		this.output += "\u0001";
 		this.writeAttributes(attributes);
 		String ret = this.output;
-		this.output = "";
+		this.output = "";	
 
 		return ret;
 

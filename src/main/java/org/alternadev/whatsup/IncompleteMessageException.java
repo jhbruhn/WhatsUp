@@ -7,18 +7,18 @@ public class IncompleteMessageException extends Exception {
 	 */
 	private static final long serialVersionUID = 42L * 63L;
 
-	private String data;
+	private int[] data;
 
-	public IncompleteMessageException(String message, String data) {
+	public IncompleteMessageException(String message, int[] input) {
 		super(message);
-		this.data = data;
+		this.data = input;
 	}
 
-	public String getData() {
+	public int[] getData() {
 		return data;
 	}
 
-	public void setData(String data) {
+	public void setData(int[] data) {
 		this.data = data;
 	}
 }
