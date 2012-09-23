@@ -17,11 +17,13 @@ public class BinTreeNodeWriter {
 
 	public String startStream(String domain, String resource) {
 		Map<String, String> attributes = new HashMap<String, String>();
-		output += "WA";
+		output = "WA";
 		output += "\u0001\u0001\u0000\u0019";
+		
 		attributes.put("to", domain);
 		attributes.put("resource", resource);
 		this.writeListStart(attributes.size() * 2 + 1);
+		
 		this.output += "\u0001";
 		this.writeAttributes(attributes);
 		String ret = this.output;
@@ -41,7 +43,7 @@ public class BinTreeNodeWriter {
 
 	protected void writeInternal(ProtocolNode node) {
 		int len = 1;
-		if (node.attributeHash.size() > 0)
+		if (node.attributeHash != null)
 			len += node.attributeHash.size() * 2;
 		if (node.children != null && node.children.size() > 0)
 			len += 1;
@@ -85,7 +87,7 @@ public class BinTreeNodeWriter {
 	}
 
 	protected void writeInt8(int v) {
-		this.output += (char) (v & 0xff);
+		this.output += (char) (v);
 	}
 
 	protected String writeInt16(int v) {

@@ -1,9 +1,9 @@
 package org.alternadev.whatsup;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -67,8 +67,9 @@ public class WhatsAPI {
 
 	protected ProtocolNode addAuth() {
 		Map<String, String> auth = new HashMap<String, String>();
-		auth.put("xmlns", "urn:ietf:params:xml:ns:xmpp-sasl");
 		auth.put("mechanism", "DIGEST-MD5-1");
+
+		auth.put("xmlns", "urn:ietf:params:xml:ns:xmpp-sasl");
 		return new ProtocolNode("auth", auth, null, "");
 	}
 
@@ -160,7 +161,12 @@ public class WhatsAPI {
 		try {
 			BufferedOutputStream out = new BufferedOutputStream(
 					this.socket.getOutputStream());
-			out.write(in.getBytes());
+			out.write(in.getBytes("ASCII"));
+			FileWriter fstream = new FileWriter("log.txt", true);
+			BufferedWriter out2 = new BufferedWriter(fstream);
+			out2.write(in+"\n");
+			// Close the output stream
+			out2.close();
 			out.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

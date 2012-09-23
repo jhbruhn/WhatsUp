@@ -36,7 +36,7 @@ public class BinTreeNodeReader {
 
 	protected String getToken(int token) throws InvalidTokenException {
 		if (token >= 0 && token < dic.length)
-			return dic[token - 1];
+			return dic[token];
 		throw new InvalidTokenException(token);
 	}
 
@@ -74,8 +74,8 @@ public class BinTreeNodeReader {
 		Map<String, String> map = new HashMap<String, String>();
 		int attribCount = (size - 2 + size % 2) / 2;
 		for (int i = 0; i < attribCount; i++) {
-			String key = this.readString(this.readInt8() + 1);
-			String value = this.readString(this.readInt8() + 1);
+			String key = this.readString(this.readInt8());
+			String value = this.readString(this.readInt8());
 			map.put(key, value);
 		}
 		return map;
