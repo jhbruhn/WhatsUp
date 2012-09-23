@@ -161,12 +161,8 @@ public class WhatsAPI {
 		try {
 			BufferedOutputStream out = new BufferedOutputStream(
 					this.socket.getOutputStream());
-			out.write(in.getBytes("ASCII"));
-			FileWriter fstream = new FileWriter("log.txt", true);
-			BufferedWriter out2 = new BufferedWriter(fstream);
-			out2.write(in+"\n");
-			// Close the output stream
-			out2.close();
+			out.write(in.getBytes());
+
 			out.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

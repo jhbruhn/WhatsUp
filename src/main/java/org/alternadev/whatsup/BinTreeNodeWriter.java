@@ -41,7 +41,7 @@ public class BinTreeNodeWriter {
 		return this.flushBuffer();
 	}
 
-	protected void writeInternal(ProtocolNode node) {
+	private void writeInternal(ProtocolNode node) {
 		int len = 1;
 		if (node.attributeHash != null)
 			len += node.attributeHash.size() * 2;
@@ -62,7 +62,7 @@ public class BinTreeNodeWriter {
 		}
 	}
 
-	protected String flushBuffer() {
+	private String flushBuffer() {
 		int size = this.output.length();
 		String ret = this.writeInt16(size);
 		ret += output;
@@ -70,14 +70,14 @@ public class BinTreeNodeWriter {
 		return ret;
 	}
 
-	protected void writeToken(int token) {
+	private void writeToken(int token) {
 		if (token < 0xf5)
 			this.output += (char) token;
 		else if (token <= 0x1f4)
 			this.output += "\u00fe" + (char) (token - 0xf5);
 	}
 
-	protected void writeJid(String user, String server) {
+	private void writeJid(String user, String server) {
 		this.output += "\u00fa";
 		if (user.length() > 0)
 			this.writeString(user);
@@ -86,24 +86,24 @@ public class BinTreeNodeWriter {
 		this.writeString(server);
 	}
 
-	protected void writeInt8(int v) {
+	private void writeInt8(int v) {
 		this.output += (char) (v);
 	}
 
-	protected String writeInt16(int v) {
+	private String writeInt16(int v) {
 		String ret = "";
 		ret += (char) ((v & 0xff00) >> 8);
 		ret += (char) ((v & 0x00ff) >> 0);
 		return ret;
 	}
 
-	protected void writeInt24(int v) {
+	private void writeInt24(int v) {
 		output += (char) ((v & 0xff0000) >> 16);
 		output += (char) ((v & 0x00ff00) >> 8);
 		output += (char) ((v & 0x0000ff) >> 0);
 	}
 
-	protected void writeBytes(String bytes) {
+	private void writeBytes(String bytes) {
 		int len = bytes.length();
 		if (len >= 0x100) {
 			this.output += "\u00fd";
@@ -115,7 +115,7 @@ public class BinTreeNodeWriter {
 		this.output += bytes;
 	}
 
-	protected void writeString(String tag) {
+	private void writeString(String tag) {
 		if (this.tokenMap.get(tag) != null) {
 			Integer key = this.tokenMap.get(tag);
 			this.writeToken(key);
@@ -130,7 +130,7 @@ public class BinTreeNodeWriter {
 		}
 	}
 
-	protected void writeAttributes(Map<String, String> attributes) {
+	private void writeAttributes(Map<String, String> attributes) {
 		if (attributes.size() > 0) {
 			for (Map.Entry<String, String> entry : attributes.entrySet()) {
 				this.writeString(entry.getKey());
@@ -139,7 +139,7 @@ public class BinTreeNodeWriter {
 		}
 	}
 
-	protected void writeListStart(int len) {
+	private void writeListStart(int len) {
 		if (len == 0)
 			this.output += "\u0000";
 		else if (len < 256)
