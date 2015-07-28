@@ -1,3 +1,5 @@
+# THIS PROJECT IS NOT SUPPORTED ANYMORE. also it does not work.
+
 # WhatsUp
 ### A Java WhatsApp Client
 
